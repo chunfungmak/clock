@@ -1,6 +1,8 @@
 import React, {useEffect, useState} from 'react';
 import './App.css';
 
+const DOUBLE_CLICK_TIMEOUT_MS = 200
+
 interface Time {
     h: number
     m: number
@@ -26,14 +28,14 @@ function App() {
                 }
                 return payload
             })
-            setCountDownTime(()=>{
+            setCountDownTime(() => {
                 const target = new Date()
                 target.setHours(18)
                 target.setMinutes(0)
                 target.setSeconds(0)
                 target.setMilliseconds(0)
                 const timeLeft = target.getTime() - new Date().getTime()
-                if (timeLeft <= 0){
+                if (timeLeft <= 0) {
                     const payload: Time = {
                         h: 0,
                         m: 0,
@@ -44,8 +46,8 @@ function App() {
                 }
 
                 const payload: Time = {
-                    h: Math.floor(timeLeft  % (1000 * 60 * 60 * 60) / 1000/ 60 / 60),
-                    m: Math.floor(timeLeft  % (1000 * 60 * 60) / 1000 / 60),
+                    h: Math.floor(timeLeft % (1000 * 60 * 60 * 60) / 1000 / 60 / 60),
+                    m: Math.floor(timeLeft % (1000 * 60 * 60) / 1000 / 60),
                     s: Math.floor(timeLeft % (1000 * 60) / 1000),
                     ms: Math.floor(timeLeft % 1000)
                 }
@@ -56,13 +58,38 @@ function App() {
         return () => clearInterval(interval)
     })
 
-    return <div onClick={() => {
+    const [doubleClickTimeout, setDoubleClickTimeout] = useState<NodeJS.Timeout | null>()
+
+    const onClick = () => {
+        if (doubleClickTimeout == null) {
+            setDoubleClickTimeout(setTimeout(() => {
+                setDoubleClickTimeout(null)
+                onSingleClick()
+            }, DOUBLE_CLICK_TIMEOUT_MS))
+        } else {
+            clearTimeout(doubleClickTimeout)
+            setDoubleClickTimeout(null)
+            onDoubleClick()
+        }
+    }
+
+    const onSingleClick = () => {
         setIsNormalMode(e => !e)
+    }
+
+    const onDoubleClick = () => {
+        console.log(
+            'double'
+        )
+    }
+
+    return <div onClick={() => {
+        onClick()
     }}>
         {
             (time != null && countDownTime != null) ?
                 (() => {
-                    const {h, m, s, ms} = isNormalMode ? time: countDownTime
+                    const {h, m, s, ms} = isNormalMode ? time : countDownTime
                     return <div className={`container ${!isNormalMode ? 'dark' : ''}`}>
                         <div
                             className='time'>{h.toString().padStart(2, '0')}:{m.toString().padStart(2, '0')}:{s.toString().padStart(2, '0')}<span
