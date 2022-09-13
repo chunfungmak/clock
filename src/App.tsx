@@ -10,11 +10,22 @@ interface Time {
     ms: number
 }
 
+function getEndTime (): Date {
+    const target = new Date()
+    target.setHours(18)
+    target.setMinutes(0)
+    target.setSeconds(0)
+    target.setMilliseconds(0)
+    return target
+}
+
 function App() {
 
     const [time, setTime] = useState<Time>()
     const [countDownTime, setCountDownTime] = useState<Time>()
     const [isNormalMode, setIsNormalMode] = useState<boolean>(true)
+
+    const [extraTime, setExtraTime] = useState<number>(0)
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -29,12 +40,7 @@ function App() {
                 return payload
             })
             setCountDownTime(() => {
-                const target = new Date()
-                target.setHours(18)
-                target.setMinutes(0)
-                target.setSeconds(0)
-                target.setMilliseconds(0)
-                const timeLeft = target.getTime() - new Date().getTime()
+                const timeLeft = getEndTime().getTime() + extraTime - new Date().getTime()
                 if (timeLeft <= 0) {
                     const payload: Time = {
                         h: 0,
@@ -60,7 +66,7 @@ function App() {
 
     const [doubleClickTimeout, setDoubleClickTimeout] = useState<NodeJS.Timeout | null>()
 
-    const onClick = () => {
+    const onClick = (e: any) => {
         if (doubleClickTimeout == null) {
             setDoubleClickTimeout(setTimeout(() => {
                 setDoubleClickTimeout(null)
@@ -69,7 +75,7 @@ function App() {
         } else {
             clearTimeout(doubleClickTimeout)
             setDoubleClickTimeout(null)
-            onDoubleClick()
+            onDoubleClick(e.pageX / e.view.innerWidth > 0.5)
         }
     }
 
@@ -77,23 +83,32 @@ function App() {
         setIsNormalMode(e => !e)
     }
 
-    const onDoubleClick = () => {
-        console.log(
-            'double'
-        )
+    const onDoubleClick = (isRight: boolean) => {
+        setExtraTime(extraTime => extraTime + (isRight ? 10 : -10) * 1000)
     }
 
-    return <div onClick={() => {
-        onClick()
-    }}>
+    return <div onClick={onClick}>
         {
             (time != null && countDownTime != null) ?
                 (() => {
                     const {h, m, s, ms} = isNormalMode ? time : countDownTime
                     return <div className={`container ${!isNormalMode ? 'dark' : ''}`}>
-                        <div
-                            className='time'>{h.toString().padStart(2, '0')}:{m.toString().padStart(2, '0')}:{s.toString().padStart(2, '0')}<span
-                            className='ms'>.{ms.toString().padStart(3, '0')}</span></div>
+                        <div className='time'>
+                            {h.toString().padStart(2, '0')}:{m.toString().padStart(2, '0')}:{s.toString().padStart(2, '0')}
+                            <span className='ms'>
+                                .{ms.toString().padStart(3, '0')}
+                            </span>
+                            <div style={{display: 'contents'}}>
+                                <span style={{fontSize: '1rem'}}>
+                                    {
+                                        !isNormalMode ? (()=>{
+                                            return new Date(getEndTime().getTime() + extraTime).toLocaleTimeString('en-US')
+                                        })() : <>&nbsp;</>
+                                    }
+                                </span>
+                            </div>
+
+                        </div>
                     </div>
                 })() : <></>
         }
