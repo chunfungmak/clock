@@ -1,7 +1,11 @@
 import React, {useEffect, useState} from 'react';
-import './App.css';
+import './Clock.css';
+import {useSelector} from "react-redux";
+import {StateModel} from "../../../store/model/state.model";
+import {store} from "../../../store";
+import {StateAction} from "../../../store/reducer";
 
-const DOUBLE_CLICK_TIMEOUT_MS = 400
+const DOUBLE_CLICK_TIMEOUT_MS = 200
 
 interface Time {
     h: number
@@ -19,13 +23,12 @@ function getEndTime(): Date {
     return target
 }
 
-function App() {
+export function Clock() {
+    const extraTime = useSelector((state: StateModel) => state.extraTime)
 
     const [time, setTime] = useState<Time>()
     const [countDownTime, setCountDownTime] = useState<Time>()
     const [isNormalMode, setIsNormalMode] = useState<boolean>(true)
-
-    const [extraTime, setExtraTime] = useState<number>(0)
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -67,16 +70,22 @@ function App() {
     const [doubleClickTimeout, setDoubleClickTimeout] = useState<NodeJS.Timeout | null>()
 
     const onClick = (e: any) => {
+        if (isNormalMode) {
+            onSingleClick()
+            return
+        }
+
         if (doubleClickTimeout == null) {
             setDoubleClickTimeout(setTimeout(() => {
                 setDoubleClickTimeout(null)
-                onSingleClick()
+                // onSingleClick()
             }, DOUBLE_CLICK_TIMEOUT_MS))
-        } else {
-            clearTimeout(doubleClickTimeout)
-            setDoubleClickTimeout(null)
-            onDoubleClick(e.pageX / e.view.innerWidth > 0.5)
+            return
         }
+
+        clearTimeout(doubleClickTimeout)
+        setDoubleClickTimeout(null)
+        onDoubleClick(e.pageX / e.view.innerWidth > 0.5)
     }
 
     const onSingleClick = () => {
@@ -84,7 +93,10 @@ function App() {
     }
 
     const onDoubleClick = (isRight: boolean) => {
-        if (!isNormalMode) setExtraTime(extraTime => extraTime + (isRight ? 60 : -60) * 1000)
+        if (!isNormalMode) store.dispatch({
+            type: StateAction.SET_EXTRA_TIME,
+            data: extraTime + (isRight ? 60 : -60) * 1000
+        })
     }
 
     return <div onClick={onClick}>
@@ -94,10 +106,15 @@ function App() {
                     const {h, m, s, ms} = isNormalMode ? time : countDownTime
                     return <div className={`container ${!isNormalMode ? 'dark' : ''}`}>
                         <div className='time'>
-                            {h.toString().padStart(2, '0')}:{m.toString().padStart(2, '0')}:{s.toString().padStart(2, '0')}
-                            <span className='ms'>
-                                .{ms.toString().padStart(3, '0')}
-                            </span>
+                            <div onClick={(e) => {
+                                onSingleClick();
+                                e.stopPropagation()
+                            }}>
+                                {h.toString().padStart(2, '0')}:{m.toString().padStart(2, '0')}:{s.toString().padStart(2, '0')}
+                                <span className='ms'>
+                                    .{ms.toString().padStart(3, '0')}
+                                </span>
+                            </div>
                             <div style={{display: 'contents'}}>
                                 <span style={{fontSize: '1rem'}}>
                                     {
@@ -114,5 +131,3 @@ function App() {
         }
     </div>
 }
-
-export default App;
