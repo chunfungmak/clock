@@ -6,6 +6,8 @@ import {PersistGate} from "redux-persist/integration/react";
 import {persistor, store} from "./store";
 import {Provider} from "react-redux"
 
+import './util/register.service.worker'
+
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
 );
