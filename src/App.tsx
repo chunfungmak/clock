@@ -10,7 +10,7 @@ interface Time {
     ms: number
 }
 
-function getEndTime (): Date {
+function getEndTime(): Date {
     const target = new Date()
     target.setHours(18)
     target.setMinutes(0)
@@ -84,7 +84,7 @@ function App() {
     }
 
     const onDoubleClick = (isRight: boolean) => {
-        setExtraTime(extraTime => extraTime + (isRight ? 60 : -60) * 1000)
+        if (!isNormalMode) setExtraTime(extraTime => extraTime + (isRight ? 60 : -60) * 1000)
     }
 
     return <div onClick={onClick}>
@@ -101,7 +101,7 @@ function App() {
                             <div style={{display: 'contents'}}>
                                 <span style={{fontSize: '1rem'}}>
                                     {
-                                        !isNormalMode ? (()=>{
+                                        !isNormalMode ? (() => {
                                             return new Date(getEndTime().getTime() + extraTime).toLocaleTimeString('en-US')
                                         })() : <>&nbsp;</>
                                     }
