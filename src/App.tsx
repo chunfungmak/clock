@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import './App.css';
 
-const DOUBLE_CLICK_TIMEOUT_MS = 200
+const DOUBLE_CLICK_TIMEOUT_MS = 400
 
 interface Time {
     h: number
@@ -84,7 +84,7 @@ function App() {
     }
 
     const onDoubleClick = (isRight: boolean) => {
-        setExtraTime(extraTime => extraTime + (isRight ? 10 : -10) * 1000)
+        setExtraTime(extraTime => extraTime + (isRight ? 60 : -60) * 1000)
     }
 
     return <div onClick={onClick}>
