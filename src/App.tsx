@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import './App.css';
 
-const DOUBLE_CLICK_TIMEOUT_MS = 400
+const DOUBLE_CLICK_TIMEOUT_MS = 200
 
 interface Time {
     h: number
@@ -67,16 +67,22 @@ function App() {
     const [doubleClickTimeout, setDoubleClickTimeout] = useState<NodeJS.Timeout | null>()
 
     const onClick = (e: any) => {
+        if (isNormalMode) {
+            onSingleClick()
+            return
+        }
+
         if (doubleClickTimeout == null) {
             setDoubleClickTimeout(setTimeout(() => {
                 setDoubleClickTimeout(null)
-                onSingleClick()
+                // onSingleClick()
             }, DOUBLE_CLICK_TIMEOUT_MS))
-        } else {
-            clearTimeout(doubleClickTimeout)
-            setDoubleClickTimeout(null)
-            onDoubleClick(e.pageX / e.view.innerWidth > 0.5)
+            return
         }
+
+        clearTimeout(doubleClickTimeout)
+        setDoubleClickTimeout(null)
+        onDoubleClick(e.pageX / e.view.innerWidth > 0.5)
     }
 
     const onSingleClick = () => {
@@ -94,10 +100,12 @@ function App() {
                     const {h, m, s, ms} = isNormalMode ? time : countDownTime
                     return <div className={`container ${!isNormalMode ? 'dark' : ''}`}>
                         <div className='time'>
-                            {h.toString().padStart(2, '0')}:{m.toString().padStart(2, '0')}:{s.toString().padStart(2, '0')}
-                            <span className='ms'>
-                                .{ms.toString().padStart(3, '0')}
-                            </span>
+                            <div onClick={(e)=> {onSingleClick(); e.stopPropagation()}}>
+                                {h.toString().padStart(2, '0')}:{m.toString().padStart(2, '0')}:{s.toString().padStart(2, '0')}
+                                <span className='ms'>
+                                    .{ms.toString().padStart(3, '0')}
+                                </span>
+                            </div>
                             <div style={{display: 'contents'}}>
                                 <span style={{fontSize: '1rem'}}>
                                     {
