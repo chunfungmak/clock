@@ -1,5 +1,9 @@
 import React, {useEffect, useState} from 'react';
-import './App.css';
+import './Clock.css';
+import {useSelector} from "react-redux";
+import {StateModel} from "../../../store/model/state.model";
+import {store} from "../../../store";
+import {StateAction} from "../../../store/reducer";
 
 const DOUBLE_CLICK_TIMEOUT_MS = 200
 
@@ -19,13 +23,12 @@ function getEndTime(): Date {
     return target
 }
 
-function App() {
+export function Clock() {
+    const extraTime = useSelector((state: StateModel) => state.extraTime)
 
     const [time, setTime] = useState<Time>()
     const [countDownTime, setCountDownTime] = useState<Time>()
     const [isNormalMode, setIsNormalMode] = useState<boolean>(true)
-
-    const [extraTime, setExtraTime] = useState<number>(0)
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -90,7 +93,10 @@ function App() {
     }
 
     const onDoubleClick = (isRight: boolean) => {
-        if (!isNormalMode) setExtraTime(extraTime => extraTime + (isRight ? 60 : -60) * 1000)
+        if (!isNormalMode) store.dispatch({
+            type: StateAction.SET_EXTRA_TIME,
+            data: extraTime + (isRight ? 60 : -60) * 1000
+        })
     }
 
     return <div onClick={onClick}>
@@ -100,7 +106,10 @@ function App() {
                     const {h, m, s, ms} = isNormalMode ? time : countDownTime
                     return <div className={`container ${!isNormalMode ? 'dark' : ''}`}>
                         <div className='time'>
-                            <div onClick={(e)=> {onSingleClick(); e.stopPropagation()}}>
+                            <div onClick={(e) => {
+                                onSingleClick();
+                                e.stopPropagation()
+                            }}>
                                 {h.toString().padStart(2, '0')}:{m.toString().padStart(2, '0')}:{s.toString().padStart(2, '0')}
                                 <span className='ms'>
                                     .{ms.toString().padStart(3, '0')}
@@ -122,5 +131,3 @@ function App() {
         }
     </div>
 }
-
-export default App;
