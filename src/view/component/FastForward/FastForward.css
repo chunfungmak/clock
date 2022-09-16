@@ -1,0 +1,43 @@
+.upper-container {
+    z-index: 999;
+    position: absolute;
+    display: grid;
+    place-items: center;
+    height: 100vh;
+    width: 100vw;
+}
+
+.fastforward {
+    display: flex;
+}
+
+.fastforward.rotate {
+    transform: rotate(180deg);
+}
+
+.fastforward .arrow {
+    width: 30px;
+    height: 30px;
+    background: #f0f0f0;
+    margin: 0 2px;
+    clip-path: polygon(0 0, 0% 100%, 100% 50%);
+    opacity: 0;
+    animation: fadeInOut 1s ease-in-out;
+}
+
+.fastforward .arrow:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.fastforward .arrow:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes fadeInOut {
+    0%, 40%, 100% {
+        opacity: 0;
+    }
+    20% {
+        opacity: 1;
+    }
+}
