@@ -20,3 +20,9 @@ div.container div.time span.ms {
     font-size: 4vw;
     display: contents;
 }
+
+.small-text {
+    font-size: 3vw;
+}
+
+
