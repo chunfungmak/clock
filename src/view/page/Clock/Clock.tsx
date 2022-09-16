@@ -4,6 +4,7 @@ import {useSelector} from "react-redux";
 import {StateModel} from "../../../store/model/state.model";
 import {store} from "../../../store";
 import {StateAction} from "../../../store/reducer";
+import {FastForward} from "../../component";
 
 const DOUBLE_CLICK_TIMEOUT_MS = 200
 
@@ -67,6 +68,8 @@ export function Clock() {
         return () => clearInterval(interval)
     })
 
+    const [displayFastForward, setDisplayFastForward] = useState<boolean>(false)
+    const [displayFastBackward, setDisplayFastBackward] = useState<boolean>(false)
     const [doubleClickTimeout, setDoubleClickTimeout] = useState<NodeJS.Timeout | null>()
 
     const onClick = (e: any) => {
@@ -93,41 +96,70 @@ export function Clock() {
     }
 
     const onDoubleClick = (isRight: boolean) => {
-        if (!isNormalMode) store.dispatch({
-            type: StateAction.SET_EXTRA_TIME,
-            data: extraTime + (isRight ? 60 : -60) * 1000
-        })
+        if (!isNormalMode) {
+            store.dispatch({
+                type: StateAction.SET_EXTRA_TIME,
+                data: extraTime + (isRight ? 60 : -60) * 1000
+            })
+            if (isRight) {
+                setDisplayFastForward(false)
+                setTimeout(() => {
+                    setDisplayFastForward(true)
+                    setTimeout(() => {
+                        setDisplayFastForward(false)
+                    }, 1000)
+                }, 1)
+
+            } else {
+                setDisplayFastBackward(false)
+                setTimeout(() => {
+                    setDisplayFastBackward(true)
+                    setTimeout(() => {
+                        setDisplayFastBackward(false)
+                    }, 1000)
+                }, 1)
+            }
+        }
     }
 
-    return <div onClick={onClick}>
+    return <>
         {
-            (time != null && countDownTime != null) ?
-                (() => {
-                    const {h, m, s, ms} = isNormalMode ? time : countDownTime
-                    return <div className={`container ${!isNormalMode ? 'dark' : ''}`}>
-                        <div className='time'>
-                            <div onClick={(e) => {
-                                onSingleClick();
-                                e.stopPropagation()
-                            }}>
-                                {h.toString().padStart(2, '0')}:{m.toString().padStart(2, '0')}:{s.toString().padStart(2, '0')}
-                                <span className='ms'>
+            displayFastForward && <FastForward forward={true}/>
+
+        }
+        {
+            displayFastBackward && <FastForward forward={false}/>
+        }
+        <div onClick={onClick}>
+            {
+                (time != null && countDownTime != null) ?
+                    (() => {
+                        const {h, m, s, ms} = isNormalMode ? time : countDownTime
+                        return <div className={`container ${!isNormalMode ? 'dark' : ''}`}>
+                            <div className='time'>
+                                <div onClick={(e) => {
+                                    onSingleClick();
+                                    e.stopPropagation()
+                                }}>
+                                    {h.toString().padStart(2, '0')}:{m.toString().padStart(2, '0')}:{s.toString().padStart(2, '0')}
+                                    <span className='ms'>
                                     .{ms.toString().padStart(3, '0')}
                                 </span>
-                            </div>
-                            <div style={{display: 'contents'}}>
-                                <span style={{fontSize: '1rem'}}>
+                                </div>
+                                <div style={{display: 'contents'}}>
+                                <span className='small-text'>
                                     {
                                         !isNormalMode ? (() => {
                                             return new Date(getEndTime().getTime() + extraTime).toLocaleTimeString('en-US')
                                         })() : <>&nbsp;</>
                                     }
                                 </span>
-                            </div>
+                                </div>
 
+                            </div>
                         </div>
-                    </div>
-                })() : <></>
-        }
-    </div>
+                    })() : <></>
+            }
+        </div>
+    </>
 }
